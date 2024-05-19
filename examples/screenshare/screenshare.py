@@ -32,7 +32,7 @@ class ScreenShareTrack(VideoStreamTrack):
 
     async def recv(self):
         img = numpy.asarray(self.sct.grab(self.bbox))
-        frame = VideoFrame.from_ndarray(img, format="rgba")
+        frame = VideoFrame.from_ndarray(img, format="bgra")
         pts, time_base = await self.next_timestamp()
         frame.pts = pts
         frame.time_base = time_base
