@@ -23,15 +23,25 @@ class ScreenShareTrack(VideoStreamTrack):
     def __init__(self):
         super().__init__()
         self.sct = mss()
-        self.mon = {"top": 40, "left": 0, "width": 800, "height": 640}
+        monitor = self.sct.monitors[0]
+        left = monitor["left"] + monitor["width"] * 5 // 100  # 5% from the left
+        top = monitor["top"] + monitor["height"] * 5 // 100  # 5% from the top
+        width = monitor["width"] * 90 // 100  # total width - 5% from the left and right
+        height = monitor["height"] * 90 // 100  # total height - 5% from the top and bottom
+        self.bbox = (left, top, width, height)
 
     async def recv(self):
-        img = numpy.asarray(self.sct.grab(self.mon))
+        img = numpy.asarray(self.sct.grab(self.bbox))
         frame = VideoFrame.from_ndarray(img, format="rgba")
         pts, time_base = await self.next_timestamp()
         frame.pts = pts
         frame.time_base = time_base
         return frame
+
+    def stop(self) -> None:
+        super(ScreenShareTrack, self).stop()
+        self.sct.close()
+
 
 
 def create_local_tracks(play_from, decode):
